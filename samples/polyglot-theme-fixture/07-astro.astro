@@ -1,0 +1,7 @@
+---
+const cards = [{ title: "Astro", href: "/astro" }, { title: "Islands", href: "/islands" }];
+---
+
+<section class="grid">
+  {cards.map((card) => <a href={card.href}>{card.title}</a>)}
+</section>

@@ -1,0 +1,7 @@
+id = "folio-theme"
+name = "Folio"
+schema_version = 1
+version = "0.0.1"
+authors = ["José Vizcaíno"]
+description = "Three color-conscious editor palettes, each available in Night and Day."
+repository = "https://github.com/xJoshx/folio-theme"

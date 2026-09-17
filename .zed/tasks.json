@@ -1,0 +1,18 @@
+[
+  {
+    "label": "Theme: check scaffold",
+    "command": "npm run check"
+  },
+  {
+    "label": "Theme: test",
+    "command": "npm test"
+  },
+  {
+    "label": "Theme: build",
+    "command": "npm run build"
+  },
+  {
+    "label": "Theme: clean",
+    "command": "just clean"
+  }
+]

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<catalog xmlns="https://example.com/catalog" version="1.0">
+  <item id="theme" status="ready"><name>Ink &amp; Blossom</name><tag>zed</tag></item>
+</catalog>

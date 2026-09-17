@@ -1,0 +1,18 @@
+{
+  "name": "Wada Theme Lab",
+  "short_name": "Theme Lab",
+  "description": "Tune and export Wada-inspired Zed editor palettes offline.",
+  "start_url": "/theme-lab-prototype/",
+  "scope": "/theme-lab-prototype/",
+  "display": "standalone",
+  "background_color": "#0b0c0e",
+  "theme_color": "#0b0c0e",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+**/.DS_Store
+themes/*.json
+!themes/folio.json
+!themes/.gitkeep
+node_modules/
+dist/
+.astro/
+.vercel

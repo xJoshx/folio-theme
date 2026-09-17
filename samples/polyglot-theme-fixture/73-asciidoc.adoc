@@ -1,0 +1,10 @@
+= AsciiDoc Fixture
+:toc:
+:source-highlighter: highlight.js
+
+This is *bold enough* to test _emphasis_ and https://zed.dev[links].
+
+[source,javascript]
+----
+const ready = true;
+----

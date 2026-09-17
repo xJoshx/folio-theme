@@ -1,0 +1,7 @@
+.PHONY: test lint build
+
+test:
+	@echo "running fixture tests"
+
+lint:
+	@echo "checking all files"

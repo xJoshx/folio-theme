@@ -1,0 +1,6 @@
+:root { --accent: oklch(68% 0.16 25); }
+
+.card:is(:hover, :focus-visible) {
+  color: var(--accent);
+  transition: color 180ms ease;
+}

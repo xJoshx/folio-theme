@@ -1,0 +1,349 @@
+---
+import { presets, roleGroups } from "../lib/theme-lab-presets.mjs";
+import "../styles/theme-lab.css";
+
+const isDevelopment = import.meta.env.DEV;
+const releasePresets = presets
+  .filter((preset) => preset.status === "pinned" || preset.status === "candidate")
+  .sort((a, b) => Number(a.appearance === "light") - Number(b.appearance === "light"));
+const pinnedReleasePresets = releasePresets.filter((preset) => preset.status === "pinned");
+const discardedPresets = presets.filter((preset) => preset.status === "discarded");
+const defaultPreset = pinnedReleasePresets[0] ?? releasePresets[0] ?? presets[0];
+
+const codeLines = [
+  [
+    ["import", "keyword"], [" { ", "plain"], ["LitElement", "plain"], [", ", "plain"],
+    ["html", "plain"], [", ", "plain"], ["css", "plain"], [" } ", "bracket"],
+    ["from", "keyword"], [" \"lit\"", "string"], [";", "plain"]
+  ],
+  [
+    ["import", "keyword"], [" { ", "plain"], ["customElement", "plain"], [", ", "plain"],
+    ["property", "plain"], [", ", "plain"], ["state", "plain"], [" } ", "bracket"],
+    ["from", "keyword"], [" \"lit/decorators.js\"", "string"], [";", "plain"]
+  ],
+  [
+    ["import", "keyword"], [" { ", "plain"], ["DocumentStore", "plain"], [", ", "plain"],
+    ["UIStore", "plain"], [", ", "plain"], ["CanvasController", "plain"], [" } ", "bracket"],
+    ["from", "keyword"], [" \"@app-cards/core\"", "string"], [";", "plain"]
+  ],
+  [
+    ["import", "keyword"], [" type", "keyword"], [" { ", "plain"], ["CanvasNode", "plain"],
+    [" } ", "bracket"], ["from", "keyword"], [" \"@app-cards/core\"", "string"], [";", "plain"]
+  ],
+  [
+    ["import", "keyword"], [" { ", "plain"], ["CanvasInteractionManager", "plain"], [", ", "plain"],
+    ["type", "keyword"], [" InteractionState", "plain"], [" } ", "bracket"], ["from", "keyword"],
+    [" \"./canvas-interaction-manager\"", "string"], [";", "plain"]
+  ],
+  [
+    ["import", "keyword"], [" { ", "plain"], ["DebugManager", "plain"], [", ", "plain"],
+    ["type", "keyword"], [" DebugState", "plain"], [" } ", "bracket"], ["from", "keyword"],
+    [" \"./debug-manager\"", "string"], [";", "plain"]
+  ],
+  [
+    ["import", "keyword"], [" { ", "plain"], ["getVisibleCanvasNodes", "plain"], [" } ", "bracket"],
+    ["from", "keyword"], [" \"./viewport-culling\"", "string"], [";", "plain"]
+  ],
+  [
+    ["import", "keyword"], [" { ", "plain"], ["YjsController", "plain"], [" } ", "bracket"],
+    ["from", "keyword"], [" \"./yjs-controller\"", "string"], [";", "plain"]
+  ],
+  [
+    ["import", "keyword"], [" { ", "plain"], ["PhantomCursorManager", "plain"], [", ", "plain"],
+    ["type", "keyword"], [" PhantomCursor", "plain"], [" } ", "bracket"], ["from", "keyword"],
+    [" \"./phantom-cursors\"", "string"], [";", "plain"]
+  ],
+  [["import", "keyword"], [" \"./app-card\"", "string"], [";", "plain"]],
+  [["import", "keyword"], [" \"./app-box\"", "string"], [";", "plain"]],
+  [["import", "keyword"], [" \"./context-menu\"", "string"], [";", "plain"]],
+  [
+    ["import", "keyword"], [" type", "keyword"], [" { ", "plain"], ["ContextMenuItem", "plain"],
+    [" } ", "bracket"], ["from", "keyword"], [" \"./context-menu\"", "string"], [";", "plain"]
+  ],
+  [],
+  [["const", "keyword"], [" BRUTALIST_COLORS", "constant"], [" = ", "operator"], ["[", "bracket"]],
+  [["  \"#ff0000\"", "string"], [",", "plain"]],
+  [["  \"#0000ff\"", "string"], [",", "plain"]],
+  [["  \"#00aa00\"", "string"], [",", "plain"]],
+  [["  \"#ff6600\"", "special"], [",", "plain"]],
+  [["  \"#cc00cc\"", "special"], [",", "plain"]],
+  [["  \"#00cccc\"", "string"], [",", "plain"]],
+  [["  \"#ffcc00\"", "string"], [",", "plain"]],
+  [["]", "bracket"], [";", "plain"]]
+];
+
+const changedLines = new Set([7, 9]);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta
+      name="description"
+      content="An offline-friendly prototype for tuning Wada-inspired Zed editor palettes."
+    />
+    <meta name="theme-color" content="#0b0c0e" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="manifest" href="/theme-lab.webmanifest" />
+    <title>Wada Theme Lab · Prototype</title>
+  </head>
+  <body class:list={{ "has-prototype-switcher": isDevelopment }} data-variant="a">
+    <div class="lab-app">
+      <header class="lab-header">
+        <div class="lab-brand">
+          <a class="back-link" href="/" aria-label="Back to the Wada colour atlas">←</a>
+          <div>
+            <p class="lab-kicker">Ink & Blossom · flight test</p>
+            <h1>Theme Lab <span>prototype</span></h1>
+          </div>
+        </div>
+
+        <div class="lab-actions">
+          <span class="offline-status" data-offline-status>
+            <i></i>
+            <span>Preparing offline copy</span>
+          </span>
+          <button class="quiet-action" type="button" data-reset>Reset</button>
+          <button class="primary-action" type="button" data-export>
+            Export Zed JSON
+            <span aria-hidden="true">↓</span>
+          </button>
+        </div>
+      </header>
+
+      <main class="lab-grid">
+        <nav class="preset-rail" aria-label="Theme presets">
+          <div class="section-heading package-heading">
+            <span>Current package</span>
+            <small>{pinnedReleasePresets.length} pinned · {releasePresets.length - pinnedReleasePresets.length} light</small>
+          </div>
+          <div class="preset-list">
+            {
+              releasePresets.map((preset) => (
+                <button
+                  class="preset-card"
+                  type="button"
+                  data-preset={preset.id}
+                  data-status={preset.status}
+                  data-appearance={preset.appearance ?? "dark"}
+                  aria-pressed={preset.id === defaultPreset.id ? "true" : "false"}
+                >
+                  <span class="preset-swatches" aria-hidden="true">
+                    <i style={`--swatch: ${preset.colors.background}`} />
+                    <i style={`--swatch: ${preset.colors.foreground}`} />
+                    <i style={`--swatch: ${preset.colors.keyword}`} />
+                    <i style={`--swatch: ${preset.colors.string}`} />
+                    <i style={`--swatch: ${preset.colors.bracket}`} />
+                  </span>
+                  <span class="preset-copy">
+                    <span class="preset-name">
+                      <strong>{preset.name}</strong>
+                      <em class:list={{ light: preset.appearance === "light", pinned: preset.status === "pinned" }}>
+                        {preset.status === "pinned" ? "Pinned" : preset.appearance === "light" ? "Light" : "Dark"}
+                      </em>
+                    </span>
+                    <small>{preset.source}</small>
+                  </span>
+                </button>
+              ))
+            }
+          </div>
+
+          <div class="section-heading discarded-heading">
+            <span>Discarded</span>
+            <small>{discardedPresets.length} retained for reference</small>
+          </div>
+          <div class="preset-list preset-list-discarded">
+            {
+              discardedPresets.map((preset) => (
+                <button
+                  class="preset-card"
+                  type="button"
+                  data-preset={preset.id}
+                  data-status="discarded"
+                  aria-label={`${preset.name}, discarded study`}
+                  aria-pressed="false"
+                >
+                  <span class="preset-swatches" aria-hidden="true">
+                    <i style={`--swatch: ${preset.colors.background}`} />
+                    <i style={`--swatch: ${preset.colors.foreground}`} />
+                    <i style={`--swatch: ${preset.colors.keyword}`} />
+                    <i style={`--swatch: ${preset.colors.string}`} />
+                    <i style={`--swatch: ${preset.colors.bracket}`} />
+                  </span>
+                  <span class="preset-copy">
+                    <span class="preset-name">
+                      <strong>{preset.name}</strong>
+                      <em>Discarded</em>
+                    </span>
+                    <small>{preset.source}</small>
+                  </span>
+                </button>
+              ))
+            }
+          </div>
+        </nav>
+
+        <section class="preview-region" aria-label="Editor preview">
+          <div class="preview-toolbar">
+            <div>
+              <span class="preview-label">Working copy</span>
+              <strong data-current-name>{defaultPreset.name}</strong>
+            </div>
+            <p data-current-description>
+              {defaultPreset.description}
+            </p>
+            <button class="copy-action" type="button" data-copy>
+              Copy JSON
+              <span aria-hidden="true">⌘C</span>
+            </button>
+          </div>
+
+          <div class="preview-stack">
+            <article class="editor-preview" data-editor-current aria-label="Editable palette preview">
+              <header class="editor-titlebar">
+                <span class="window-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+                <nav class="breadcrumbs" aria-label="File path">
+                  <span>packages</span><b>›</b><span>ui-lit</span><b>›</b><span>src</span><b>›</b>
+                  <span class="file-badge">TS</span><strong>app-canvas.ts</strong><b>›</b><span>…</span>
+                </nav>
+              </header>
+              <div class="blame-row">You, 3 weeks ago <span>·</span> 1 author (You)</div>
+              <div class="editor-body">
+                <ol class="code-lines" aria-label="TypeScript sample">
+                  {
+                    codeLines.map((line, index) => (
+                      <li class:list={{ active: index === 0, changed: changedLines.has(index + 1) }}>
+                        <span class="line-number">{index + 1}</span>
+                        <code>
+                          {line.map(([text, token]) => <span class={`token-${token}`}>{text}</span>)}
+                          {index === 0 && <em class="inline-blame">You, 7 months ago · chore: add oxlint and oxfmt</em>}
+                        </code>
+                      </li>
+                    ))
+                  }
+                </ol>
+                <div class="minimap" aria-hidden="true">
+                  {Array.from({ length: 34 }, (_, index) => (
+                    <i class={`mini-${["plain", "keyword", "string", "constant"][index % 4]}`} />
+                  ))}
+                </div>
+              </div>
+            </article>
+
+            <article
+              class="editor-preview reference-preview"
+              data-editor-reference
+              aria-label="Original preset reference"
+            >
+              <div class="reference-caption">
+                <span>Original preset</span>
+                <strong data-reference-name>{defaultPreset.name}</strong>
+              </div>
+              <header class="editor-titlebar">
+                <span class="window-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+                <nav class="breadcrumbs" aria-label="Reference file path">
+                  <span>packages</span><b>›</b><span>ui-lit</span><b>›</b><span>src</span><b>›</b>
+                  <span class="file-badge">TS</span><strong>app-canvas.ts</strong>
+                </nav>
+              </header>
+              <div class="editor-body reference-editor-body">
+                <ol class="code-lines" aria-hidden="true">
+                  {
+                    codeLines.slice(0, 15).map((line, index) => (
+                      <li class:list={{ active: index === 0, changed: changedLines.has(index + 1) }}>
+                        <span class="line-number">{index + 1}</span>
+                        <code>{line.map(([text, token]) => <span class={`token-${token}`}>{text}</span>)}</code>
+                      </li>
+                    ))
+                  }
+                </ol>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <aside class="inspector" aria-label="Theme color controls">
+          <div class="inspector-heading">
+            <div>
+              <p>Inspector</p>
+              <h2>Visible roles</h2>
+            </div>
+            <span data-changed-count>0 changed</span>
+          </div>
+
+          <div class="provenance-key" aria-label="Color source key">
+            <span><i class="direct"></i>Exact Wada swatch</span>
+            <span><i class="adjusted"></i>Screen adjustment</span>
+          </div>
+
+          <div class="contrast-summary" aria-live="polite">
+            <div>
+              <span>Main text</span>
+              <strong data-contrast="foreground">—</strong>
+            </div>
+            <div>
+              <span>Keyword</span>
+              <strong data-contrast="keyword">—</strong>
+            </div>
+            <div>
+              <span>String</span>
+              <strong data-contrast="string">—</strong>
+            </div>
+            <div>
+              <span>Comment</span>
+              <strong data-contrast="muted">—</strong>
+            </div>
+          </div>
+
+          <div class="control-groups">
+            {
+              roleGroups.map((group) => (
+                <section class="control-group">
+                  <h3>{group.name}</h3>
+                  <div class="role-list">
+                    {group.roles.map(([role, label]) => (
+                      <label class="role-control" data-role-control={role}>
+                        <input type="color" data-color-input={role} aria-label={`${label} color picker`} />
+                        <span class="role-copy">
+                          <strong>{label}</strong>
+                          <small data-origin={role}>Wada source</small>
+                        </span>
+                        <input
+                          class="hex-input"
+                          type="text"
+                          inputmode="text"
+                          maxlength="7"
+                          spellcheck="false"
+                          data-hex-input={role}
+                          aria-label={`${label} hex value`}
+                        />
+                      </label>
+                    ))}
+                  </div>
+                </section>
+              ))
+            }
+          </div>
+        </aside>
+      </main>
+    </div>
+
+    <div class="toast" data-toast role="status" aria-live="polite"></div>
+
+    {
+      isDevelopment && (
+        <nav class="prototype-switcher" aria-label="Prototype layout">
+          <button type="button" data-variant-previous aria-label="Previous layout">←</button>
+          <span><small>Layout</small><strong data-variant-label>A — Workbench</strong></span>
+          <button type="button" data-variant-next aria-label="Next layout">→</button>
+        </nav>
+      )
+    }
+
+    <script is:inline id="themeLabPresets" type="application/json" set:html={JSON.stringify(presets)}></script>
+    <script src="../scripts/theme-lab.ts"></script>
+  </body>
+</html>

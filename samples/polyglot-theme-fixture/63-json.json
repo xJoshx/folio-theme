@@ -1,0 +1,7 @@
+{
+  "name": "json fixture",
+  "enabled": true,
+  "count": 42,
+  "colors": ["#f37f94", "#96d1aa"],
+  "nested": { "nullable": null }
+}

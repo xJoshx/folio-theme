@@ -1,0 +1,94 @@
+---
+import { readableForeground } from "../lib/wada.mjs";
+
+interface WadaColor {
+  name: string;
+  hex: string;
+  cmyk: number[];
+  lab: number[];
+  rgb: number[];
+  swatch: number;
+}
+
+interface Palette {
+  id: number;
+  size: number;
+  darkest: number;
+  pairContrast: number;
+  hasDarkAnchor: boolean;
+  searchText: string;
+  colors: WadaColor[];
+}
+
+interface Props {
+  palette: Palette;
+}
+
+const { palette }: Props = Astro.props;
+const colorNames = palette.colors.map((color) => color.name).join(", ");
+const payload = JSON.stringify({
+  id: palette.id,
+  size: palette.size,
+  pairContrast: palette.pairContrast,
+  colors: palette.colors.map(({ name, hex, cmyk, lab, rgb, swatch }) => ({
+    name,
+    hex,
+    foreground: readableForeground(hex),
+    cmyk,
+    lab,
+    rgb,
+    swatch
+  }))
+});
+---
+
+<li
+  class="palette-item"
+  data-id={palette.id}
+  data-size={palette.size}
+  data-darkest={palette.darkest}
+  data-contrast={palette.pairContrast}
+  data-dark-anchor={String(palette.hasDarkAnchor)}
+  data-search={palette.searchText}
+>
+  <button
+    class="palette-card"
+    type="button"
+    data-palette={payload}
+    aria-label={`Abrir combinación ${palette.id}: ${colorNames}`}
+  >
+    <span class="palette-card__meta">
+      <span class="palette-card__number">{String(palette.id).padStart(3, "0")}</span>
+      <span class="palette-card__count">{palette.size} colores</span>
+    </span>
+
+    <span
+      class="palette-card__swatches"
+      style={`--swatch-count: ${palette.size}`}
+      aria-hidden="true"
+    >
+      {
+        palette.colors.map((color) => (
+          <span
+            class="palette-card__swatch"
+            style={`--swatch: ${color.hex}; --swatch-foreground: ${readableForeground(color.hex)}`}
+            title={`${color.name} · ${color.hex.toUpperCase()}`}
+          >
+            <span>{color.hex.replace("#", "")}</span>
+          </span>
+        ))
+      }
+    </span>
+
+    <span class="palette-card__names" aria-hidden="true">
+      {
+        palette.colors.map((color) => (
+          <span class="palette-card__name">
+            <i style={`--dot: ${color.hex}`} />
+            <span>{color.name}</span>
+          </span>
+        ))
+      }
+    </span>
+  </button>
+</li>

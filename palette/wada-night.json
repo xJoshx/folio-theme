@@ -1,0 +1,36 @@
+{
+  "$schema": "../schemas/palette.schema.json",
+  "name": "Wada Night",
+  "appearance": "dark",
+  "settings": {
+    "italics": true
+  },
+  "colors": {
+    "rosewater": null,
+    "flamingo": null,
+    "pink": null,
+    "mauve": null,
+    "red": null,
+    "maroon": null,
+    "peach": null,
+    "yellow": null,
+    "green": null,
+    "teal": null,
+    "sky": null,
+    "sapphire": null,
+    "blue": null,
+    "lavender": null,
+    "text": null,
+    "subtext1": null,
+    "subtext0": null,
+    "overlay2": null,
+    "overlay1": null,
+    "overlay0": null,
+    "surface2": null,
+    "surface1": null,
+    "surface0": null,
+    "base": null,
+    "mantle": null,
+    "crust": null
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name": "folio-theme",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "check": "node scripts/check.mjs",
+    "test": "node --test",
+    "dev": "astro dev",
+    "site:dev": "astro dev",
+    "site:build": "astro build",
+    "site:preview": "astro preview",
+    "site:check": "astro check",
+    "release:check": "npm run check && npm test && npm run build && npm run site:check && npm run site:build",
+    "theme:lab": "astro dev --open /theme-lab-prototype/"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "dependencies": {
+    "astro": "^7.3.2",
+    "dictionary-of-colour-combinations": "^1.0.2"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "typescript": "^6.0.3"
+  }
+}

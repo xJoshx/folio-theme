@@ -1,0 +1,6 @@
+$accent: #eeb480;
+
+.panel {
+  &:has(input:checked) { border-color: $accent; }
+  @media (width >= 48rem) { display: grid; grid-template-columns: 1fr 2fr; }
+}

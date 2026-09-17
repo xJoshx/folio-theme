@@ -1,0 +1,735 @@
+---
+import colors from "dictionary-of-colour-combinations";
+import PaletteCard from "../components/PaletteCard.astro";
+import { buildCombinations } from "../lib/wada.mjs";
+import "../styles/gallery.css";
+
+const combinations = buildCombinations(colors);
+const sizeCounts = Object.fromEntries(
+  [2, 3, 4].map((size) => [
+    size,
+    combinations.filter((combination) => combination.size === size).length
+  ])
+);
+const themePalettes = combinations.map((palette) => ({
+  id: palette.id,
+  colors: palette.colors.map(({ name, hex }: { name: string; hex: string }) => ({ name, hex }))
+}));
+---
+
+<!doctype html>
+<html lang="es" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta
+      name="description"
+      content="Explorador visual de las 348 combinaciones de color compiladas por Sanzo Wada."
+    />
+    <meta name="theme-color" content="#051230" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Wada Colour Atlas · 348 combinaciones</title>
+    <script is:inline>
+      (() => {
+        try {
+          const savedTheme = localStorage.getItem("wada-theme");
+          const legacyCanvas = localStorage.getItem("wada-canvas");
+          const storedTheme =
+            savedTheme === "light" || savedTheme === "dark"
+              ? savedTheme
+              : legacyCanvas === "paper"
+                ? "light"
+                : legacyCanvas === "night"
+                  ? "dark"
+                  : "";
+          const theme = storedTheme ||
+            (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+          document.documentElement.dataset.theme = theme;
+        } catch {
+          document.documentElement.dataset.theme =
+            window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+        }
+      })();
+    </script>
+  </head>
+  <body data-density="compact">
+    <main class="site-shell">
+      <header class="masthead">
+        <div>
+          <p class="eyebrow">Sanzo Wada · archivo cromático</p>
+          <h1>348 combinaciones,<br />a simple vista.</h1>
+          <p class="masthead__intro">
+            Una mesa de trabajo para recorrer <em>A Dictionary of Colour Combinations</em>,
+            buscar relaciones y encontrar la base del futuro tema. Los datos proceden del
+            <a
+              href="https://github.com/mattdesl/dictionary-of-colour-combinations"
+              target="_blank"
+              rel="noreferrer"
+            >dataset MIT de Matt DesLauriers</a>.
+          </p>
+          <div class="masthead__actions">
+            <a class="theme-lab-link" href="/theme-lab-prototype/">
+              Abrir Theme Lab
+              <span aria-hidden="true">→</span>
+            </a>
+          </div>
+        </div>
+
+        <dl class="stats" aria-label="Resumen del archivo">
+          <div>
+            <dt>combinaciones</dt>
+            <dd>{combinations.length}</dd>
+          </div>
+          <div>
+            <dt>colores únicos</dt>
+            <dd>{colors.length}</dd>
+          </div>
+          <div>
+            <dt>por combinación</dt>
+            <dd>2–4</dd>
+          </div>
+        </dl>
+      </header>
+
+      <section class="controls-wrap" aria-label="Herramientas de exploración">
+        <div class="controls">
+          <label class="search-field" for="paletteSearch">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.7"></circle>
+              <path d="m16 16 4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"></path>
+            </svg>
+            <input
+              id="paletteSearch"
+              type="search"
+              autocomplete="off"
+              placeholder="Nombre, hex o número…"
+            />
+            <button
+              id="searchClear"
+              class="search-clear"
+              type="button"
+              aria-label="Borrar búsqueda"
+              hidden
+            >×</button>
+          </label>
+
+          <div class="segmented" aria-label="Número de colores">
+            <button type="button" data-size-filter="all" aria-pressed="true">Todos</button>
+            <button type="button" data-size-filter="2" aria-pressed="false">2 · {sizeCounts[2]}</button>
+            <button type="button" data-size-filter="3" aria-pressed="false">3 · {sizeCounts[3]}</button>
+            <button type="button" data-size-filter="4" aria-pressed="false">4 · {sizeCounts[4]}</button>
+          </div>
+
+          <div class="segmented theme-mode" aria-label="Tema de la interfaz">
+            <button type="button" data-theme-option="dark" aria-pressed="true">Oscuro</button>
+            <button type="button" data-theme-option="light" aria-pressed="false">Claro</button>
+          </div>
+
+          <label class="select-wrap" for="paletteSort">
+            <select id="paletteSort" aria-label="Ordenar combinaciones">
+              <option value="id">Orden original</option>
+              <option value="darkness">Más oscuras primero</option>
+              <option value="contrast">Mayor contraste interno</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="theme-palette-control">
+          <div class="theme-palette-control__copy">
+            <span class="theme-palette-slots" aria-hidden="true">
+              <i title="Fondo"></i>
+              <i title="Texto"></i>
+              <i title="Superficie"></i>
+              <i title="Acento"></i>
+            </span>
+            <span class="theme-palette-control__text">
+              <span class="theme-palette-control__label">Tema Wada</span>
+              <span id="themePaletteSummary" class="theme-palette-control__summary" aria-live="polite">
+                Predeterminado · sistema
+              </span>
+            </span>
+          </div>
+          <label class="select-wrap theme-palette-select" for="themePaletteSelect">
+            <select id="themePaletteSelect" aria-label="Elegir combinación para el tema">
+              <option value="">Tema predeterminado</option>
+              {
+                combinations.map((palette) => (
+                  <option value={palette.id}>
+                    {String(palette.id).padStart(3, "0")} · {palette.colors.map((color: { name: string }) => color.name).join(" / ")}
+                  </option>
+                ))
+              }
+            </select>
+          </label>
+        </div>
+
+        <div class="secondary-controls">
+          <p id="resultsSummary" class="results-summary" aria-live="polite">
+            Mostrando {combinations.length} de {combinations.length} combinaciones
+          </p>
+
+          <div class="secondary-controls__actions">
+            <label class="toggle-check">
+              <input id="darkOnly" type="checkbox" />
+              <span>Solo con tono muy oscuro</span>
+            </label>
+
+            <div class="segmented" aria-label="Densidad de la galería">
+              <button type="button" data-density-option="compact" aria-pressed="true">
+                Compacta
+              </button>
+              <button type="button" data-density-option="detail" aria-pressed="false">
+                Detalle
+              </button>
+            </div>
+
+            <button id="resetFilters" class="quiet-button" type="button" hidden>
+              Restablecer
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <ol id="paletteGrid" class="palette-grid">
+        {combinations.map((palette) => <PaletteCard palette={palette} />)}
+      </ol>
+
+      <div id="emptyState" class="empty-state" hidden>
+        <p>
+          <strong>No aparece ninguna combinación.</strong>
+          Prueba otro color, hex o número de archivo.
+        </p>
+      </div>
+
+      <footer class="site-footer">
+        <p>
+          Los valores RGB y hex son conversiones modernas desde CMYK mediante perfiles
+          SWOP v2 y sRGB; pueden diferir de las muestras impresas. Los nombres históricos
+          se mantienen en inglés para conservar la referencia del dataset.
+        </p>
+        <p>
+          Datos: <a
+            href="https://github.com/mattdesl/dictionary-of-colour-combinations"
+            target="_blank"
+            rel="noreferrer"
+          >Matt DesLauriers</a> · MIT
+        </p>
+      </footer>
+    </main>
+
+    <dialog id="paletteDialog" class="palette-dialog" aria-labelledby="dialogTitle">
+      <div class="dialog-shell">
+        <header class="dialog-header">
+          <div>
+            <p id="dialogKicker" class="dialog-kicker">Archivo cromático</p>
+            <h2 id="dialogTitle">Combinación</h2>
+          </div>
+          <form method="dialog">
+            <button id="dialogClose" class="dialog-close" type="button" aria-label="Cerrar detalle">×</button>
+          </form>
+        </header>
+
+        <div id="dialogSwatches" class="dialog-swatches" aria-label="Muestras de color"></div>
+        <div id="dialogColors" class="dialog-color-list"></div>
+
+        <div class="dialog-actions">
+          <button id="copyHexes" class="dialog-action" type="button">Copiar hex</button>
+          <button id="copyCss" class="dialog-action dialog-action--primary" type="button">
+            Copiar variables CSS
+          </button>
+        </div>
+      </div>
+    </dialog>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script is:inline id="themePaletteData" type="application/json" set:html={JSON.stringify(themePalettes)}></script>
+
+    <script is:inline>
+      const grid = document.querySelector("#paletteGrid");
+      const items = [...grid.querySelectorAll(".palette-item")];
+      const search = document.querySelector("#paletteSearch");
+      const searchClear = document.querySelector("#searchClear");
+      const sizeButtons = [...document.querySelectorAll("[data-size-filter]")];
+      const themeButtons = [...document.querySelectorAll("[data-theme-option]")];
+      const themePaletteSelect = document.querySelector("#themePaletteSelect");
+      const themePaletteSummary = document.querySelector("#themePaletteSummary");
+      const themePalettes = JSON.parse(document.querySelector("#themePaletteData").textContent);
+      const densityButtons = [...document.querySelectorAll("[data-density-option]")];
+      const darkOnly = document.querySelector("#darkOnly");
+      const sort = document.querySelector("#paletteSort");
+      const resultsSummary = document.querySelector("#resultsSummary");
+      const emptyState = document.querySelector("#emptyState");
+      const resetFilters = document.querySelector("#resetFilters");
+      const dialog = document.querySelector("#paletteDialog");
+      const dialogClose = document.querySelector("#dialogClose");
+      const dialogTitle = document.querySelector("#dialogTitle");
+      const dialogKicker = document.querySelector("#dialogKicker");
+      const dialogSwatches = document.querySelector("#dialogSwatches");
+      const dialogColors = document.querySelector("#dialogColors");
+      const copyHexes = document.querySelector("#copyHexes");
+      const copyCss = document.querySelector("#copyCss");
+      const toast = document.querySelector("#toast");
+
+      const state = {
+        query: "",
+        size: "all",
+        darkOnly: false,
+        sort: "id"
+      };
+
+      let activePalette = null;
+      let toastTimer;
+
+      const normalize = (value) =>
+        value
+          .normalize("NFD")
+          .replace(/\p{Diacritic}/gu, "")
+          .trim()
+          .toLocaleLowerCase("en");
+
+      function setPressed(buttons, value, attribute) {
+        buttons.forEach((button) => {
+          button.setAttribute("aria-pressed", String(button.dataset[attribute] === value));
+        });
+      }
+
+      function updateGallery() {
+        const normalizedQuery = normalize(state.query);
+        let visible = 0;
+
+        items.forEach((item) => {
+          const matchesQuery = !normalizedQuery || normalize(item.dataset.search).includes(normalizedQuery);
+          const matchesSize = state.size === "all" || item.dataset.size === state.size;
+          const matchesDark = !state.darkOnly || item.dataset.darkAnchor === "true";
+          const show = matchesQuery && matchesSize && matchesDark;
+          item.hidden = !show;
+          if (show) visible += 1;
+        });
+
+        const sorted = [...items].sort((first, second) => {
+          if (state.sort === "darkness") {
+            return Number(first.dataset.darkest) - Number(second.dataset.darkest);
+          }
+          if (state.sort === "contrast") {
+            return Number(second.dataset.contrast) - Number(first.dataset.contrast);
+          }
+          return Number(first.dataset.id) - Number(second.dataset.id);
+        });
+
+        grid.append(...sorted);
+        resultsSummary.textContent = `Mostrando ${visible} de ${items.length} combinaciones`;
+        emptyState.hidden = visible !== 0;
+        grid.hidden = visible === 0;
+        searchClear.hidden = state.query.length === 0;
+        resetFilters.hidden =
+          state.query.length === 0 &&
+          state.size === "all" &&
+          !state.darkOnly &&
+          state.sort === "id";
+      }
+
+      search.addEventListener("input", () => {
+        state.query = search.value;
+        updateGallery();
+      });
+
+      searchClear.addEventListener("click", () => {
+        search.value = "";
+        state.query = "";
+        search.focus();
+        updateGallery();
+      });
+
+      sizeButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          state.size = button.dataset.sizeFilter;
+          setPressed(sizeButtons, state.size, "sizeFilter");
+          updateGallery();
+        });
+      });
+
+      darkOnly.addEventListener("change", () => {
+        state.darkOnly = darkOnly.checked;
+        updateGallery();
+      });
+
+      sort.addEventListener("change", () => {
+        state.sort = sort.value;
+        updateGallery();
+      });
+
+      let followsSystemTheme = true;
+      const systemTheme = window.matchMedia("(prefers-color-scheme: light)");
+
+      function applyTheme(theme, persist = false) {
+        document.documentElement.dataset.theme = theme;
+        setPressed(themeButtons, theme, "themeOption");
+        if (persist) {
+          followsSystemTheme = false;
+          try {
+            localStorage.setItem("wada-theme", theme);
+          } catch {}
+        }
+        if (themePaletteSelect.value === "") {
+          document.querySelector('meta[name="theme-color"]').content =
+            theme === "dark" ? "#051230" : "#ebd3a2";
+          themePaletteSummary.textContent = `Predeterminado · ${theme === "light" ? "claro" : "oscuro"}`;
+        }
+      }
+
+      themeButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          applyTheme(button.dataset.themeOption, true);
+          applyPaletteTheme("", true);
+        });
+      });
+
+      const syncSystemTheme = () => {
+        if (followsSystemTheme) applyTheme(systemTheme.matches ? "light" : "dark");
+      };
+
+      if (typeof systemTheme.addEventListener === "function") {
+        systemTheme.addEventListener("change", syncSystemTheme);
+      }
+
+      const paletteThemeProperties = [
+        "--canvas",
+        "--canvas-rgb",
+        "--surface",
+        "--surface-strong",
+        "--surface-translucent",
+        "--ink",
+        "--muted",
+        "--faint",
+        "--hairline",
+        "--hairline-hover",
+        "--control-fill",
+        "--control-hover",
+        "--selected-fill",
+        "--selected-ink",
+        "--focus",
+        "--accent",
+        "--theme-slot-1",
+        "--theme-slot-2",
+        "--theme-slot-3",
+        "--theme-slot-4"
+      ];
+
+      const WADA_BLACK = "#111314";
+      const WADA_WHITE = "#ffffff";
+
+      function channelLuminance(value) {
+        const channel = Number.parseInt(value, 16) / 255;
+        return channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+      }
+
+      function luminance(hex) {
+        return 0.2126 * channelLuminance(hex.slice(1, 3)) +
+          0.7152 * channelLuminance(hex.slice(3, 5)) +
+          0.0722 * channelLuminance(hex.slice(5, 7));
+      }
+
+      function contrast(first, second) {
+        const light = Math.max(luminance(first), luminance(second));
+        const dark = Math.min(luminance(first), luminance(second));
+        return (light + 0.05) / (dark + 0.05);
+      }
+
+      function hexChannels(hex) {
+        return hex
+          .slice(1)
+          .match(/.{2}/g)
+          .map((channel) => Number.parseInt(channel, 16));
+      }
+
+      function mixHex(source, target, amount) {
+        const sourceChannels = hexChannels(source);
+        const targetChannels = hexChannels(target);
+        return `#${sourceChannels
+          .map((channel, index) => Math.round(channel + (targetChannels[index] - channel) * amount))
+          .map((channel) => channel.toString(16).padStart(2, "0"))
+          .join("")}`;
+      }
+
+      function minimumContrast(backgrounds, foreground) {
+        const surfaces = Array.isArray(backgrounds) ? backgrounds : [backgrounds];
+        return Math.min(...surfaces.map((background) => contrast(background, foreground)));
+      }
+
+      function readableWadaText(backgrounds, preferred) {
+        if (minimumContrast(backgrounds, preferred) >= 4.5) return preferred;
+        const target = minimumContrast(backgrounds, WADA_BLACK) >= minimumContrast(backgrounds, WADA_WHITE)
+          ? WADA_BLACK
+          : WADA_WHITE;
+        for (let amount = 0.12; amount <= 1; amount += 0.08) {
+          const candidate = mixHex(preferred, target, amount);
+          if (minimumContrast(backgrounds, candidate) >= 4.5) return candidate;
+        }
+        return target;
+      }
+
+      function applyPaletteTheme(value, persist = false) {
+        const palette = themePalettes.find((candidate) => String(candidate.id) === String(value));
+
+        if (!palette) {
+          paletteThemeProperties.forEach((property) => {
+            document.documentElement.style.removeProperty(property);
+          });
+          document.documentElement.dataset.paletteTheme = "default";
+          document.querySelector('meta[name="theme-color"]').content =
+            document.documentElement.dataset.theme === "dark" ? "#051230" : "#ebd3a2";
+          themePaletteSelect.value = "";
+          themePaletteSummary.textContent = `Predeterminado · ${document.documentElement.dataset.theme === "light" ? "claro" : "oscuro"}`;
+          if (persist) {
+            try {
+              localStorage.removeItem("wada-palette");
+            } catch {}
+          }
+          return;
+        }
+
+        const slots = Array.from({ length: 4 }, (_, index) => palette.colors[index % palette.colors.length]);
+        const [background, preferredText, surface, accent] = slots;
+        const ink = readableWadaText([background.hex, surface.hex], preferredText.hex);
+        const muted = `color-mix(in srgb, ${ink} 82%, ${surface.hex})`;
+        const faint = `color-mix(in srgb, ${ink} 68%, ${surface.hex})`;
+
+        document.documentElement.dataset.paletteTheme = "custom";
+        themeButtons.forEach((button) => button.setAttribute("aria-pressed", "false"));
+        slots.forEach((color, index) => {
+          document.documentElement.style.setProperty(`--theme-slot-${index + 1}`, color.hex);
+        });
+        document.documentElement.style.setProperty("--canvas", background.hex);
+        document.documentElement.style.setProperty("--canvas-rgb", hexChannels(background.hex).join(", "));
+        document.documentElement.style.setProperty("--surface", surface.hex);
+        document.documentElement.style.setProperty("--surface-strong", `color-mix(in srgb, ${surface.hex} 78%, ${accent.hex})`);
+        document.documentElement.style.setProperty("--surface-translucent", `color-mix(in srgb, ${surface.hex} 88%, transparent)`);
+        document.documentElement.style.setProperty("--ink", ink);
+        document.documentElement.style.setProperty("--muted", muted);
+        document.documentElement.style.setProperty("--faint", faint);
+        document.documentElement.style.setProperty("--hairline", `color-mix(in srgb, ${ink} 18%, transparent)`);
+        document.documentElement.style.setProperty("--hairline-hover", `color-mix(in srgb, ${accent.hex} 34%, transparent)`);
+        document.documentElement.style.setProperty("--control-fill", `color-mix(in srgb, ${surface.hex} 76%, transparent)`);
+        document.documentElement.style.setProperty("--control-hover", `color-mix(in srgb, ${accent.hex} 22%, transparent)`);
+        document.documentElement.style.setProperty("--selected-fill", accent.hex);
+        document.documentElement.style.setProperty("--selected-ink", readableWadaText(accent.hex, background.hex));
+        document.documentElement.style.setProperty("--focus", accent.hex);
+        document.documentElement.style.setProperty("--accent", accent.hex);
+        document.querySelector('meta[name="theme-color"]').content = background.hex;
+        themePaletteSelect.value = String(palette.id);
+        themePaletteSummary.textContent = `${String(palette.id).padStart(3, "0")} · ${palette.colors.map((color) => color.name).join(" / ")}`;
+
+        if (persist) {
+          try {
+            localStorage.setItem("wada-palette", String(palette.id));
+          } catch {}
+        }
+      }
+
+      themePaletteSelect.addEventListener("change", () => {
+        applyPaletteTheme(themePaletteSelect.value, true);
+      });
+
+      densityButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const density = button.dataset.densityOption;
+          document.body.dataset.density = density;
+          setPressed(densityButtons, density, "densityOption");
+          try {
+            localStorage.setItem("wada-density", density);
+          } catch {}
+        });
+      });
+
+      resetFilters.addEventListener("click", () => {
+        state.query = "";
+        state.size = "all";
+        state.darkOnly = false;
+        state.sort = "id";
+        search.value = "";
+        darkOnly.checked = false;
+        sort.value = "id";
+        setPressed(sizeButtons, "all", "sizeFilter");
+        updateGallery();
+      });
+
+      function makeElement(tag, className, text) {
+        const element = document.createElement(tag);
+        if (className) element.className = className;
+        if (text !== undefined) element.textContent = text;
+        return element;
+      }
+
+      function slugify(value) {
+        return value
+          .toLocaleLowerCase("en")
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "");
+      }
+
+      function cssForPalette(palette) {
+        const variables = palette.colors.map(
+          (color, index) => `  --wada-${index + 1}-${slugify(color.name)}: ${color.hex};`
+        );
+        return `:root {\n${variables.join("\n")}\n}`;
+      }
+
+      async function copyText(text, confirmation) {
+        try {
+          await navigator.clipboard.writeText(text);
+        } catch {
+          const textarea = document.createElement("textarea");
+          textarea.value = text;
+          textarea.style.position = "fixed";
+          textarea.style.opacity = "0";
+          document.body.append(textarea);
+          textarea.select();
+          document.execCommand("copy");
+          textarea.remove();
+        }
+
+        toast.textContent = confirmation;
+        toast.dataset.visible = "true";
+        window.clearTimeout(toastTimer);
+        toastTimer = window.setTimeout(() => {
+          toast.dataset.visible = "false";
+        }, 1600);
+      }
+
+      function renderDetail(palette) {
+        activePalette = palette;
+        dialogTitle.textContent = `Combinación ${String(palette.id).padStart(3, "0")}`;
+        dialogKicker.textContent = `${palette.size} colores · contraste interno ${palette.pairContrast.toFixed(2)}:1`;
+        dialogSwatches.style.setProperty("--detail-count", palette.size);
+        dialogSwatches.replaceChildren();
+        dialogColors.replaceChildren();
+
+        palette.colors.forEach((color) => {
+          const swatch = makeElement("button", "dialog-swatch");
+          swatch.type = "button";
+          swatch.style.setProperty("--detail-swatch", color.hex);
+          swatch.style.setProperty("--detail-foreground", color.foreground);
+          swatch.setAttribute("aria-label", `Copiar ${color.name}, ${color.hex}`);
+          swatch.append(makeElement("span", "", color.hex));
+          swatch.addEventListener("click", () => copyText(color.hex, `${color.hex.toUpperCase()} copiado`));
+          dialogSwatches.append(swatch);
+
+          const row = makeElement("div", "color-row");
+          const dot = makeElement("span", "color-row__dot");
+          dot.style.setProperty("--row-swatch", color.hex);
+
+          const name = makeElement("div", "color-row__name");
+          name.append(makeElement("strong", "", color.name));
+          name.append(makeElement("span", "", `RGB ${color.rgb.join(" · ")}`));
+
+          const lab = color.lab.map((value) => Number(value).toFixed(1)).join(" · ");
+          const metrics = makeElement(
+            "span",
+            "color-row__metrics",
+            `CMYK ${color.cmyk.join(" · ")}  /  Lab ${lab}`
+          );
+
+          const copy = makeElement("button", "color-row__copy", color.hex);
+          copy.type = "button";
+          copy.setAttribute("aria-label", `Copiar ${color.hex}`);
+          copy.addEventListener("click", () => copyText(color.hex, `${color.hex.toUpperCase()} copiado`));
+
+          row.append(dot, name, metrics, copy);
+          dialogColors.append(row);
+        });
+      }
+
+      function openPalette(card, updateHash = true) {
+        const palette = JSON.parse(card.dataset.palette);
+        renderDetail(palette);
+        if (typeof dialog.showModal === "function") {
+          dialog.showModal();
+        } else {
+          dialog.setAttribute("open", "");
+          dialog.dataset.open = "true";
+        }
+        if (updateHash) history.replaceState(null, "", `#combination-${palette.id}`);
+      }
+
+      function closePalette() {
+        if (typeof dialog.close === "function") {
+          dialog.close();
+        } else {
+          dialog.removeAttribute("open");
+          delete dialog.dataset.open;
+          dialog.dispatchEvent(new Event("close"));
+        }
+      }
+
+      dialogClose.addEventListener("click", closePalette);
+
+      dialog.addEventListener("click", (event) => {
+        if (event.target === dialog && dialog.dataset.open === "true") closePalette();
+      });
+
+      grid.addEventListener("click", (event) => {
+        const card = event.target.closest(".palette-card");
+        if (card) openPalette(card);
+      });
+
+      copyHexes.addEventListener("click", () => {
+        if (!activePalette) return;
+        copyText(
+          activePalette.colors.map((color) => color.hex).join(", "),
+          "Paleta copiada"
+        );
+      });
+
+      copyCss.addEventListener("click", () => {
+        if (!activePalette) return;
+        copyText(cssForPalette(activePalette), "Variables CSS copiadas");
+      });
+
+      dialog.addEventListener("close", () => {
+        if (location.hash.startsWith("#combination-")) {
+          history.replaceState(null, "", `${location.pathname}${location.search}`);
+        }
+      });
+
+      document.addEventListener("keydown", (event) => {
+        const target = event.target;
+        const isTyping = target.matches("input, textarea, select, [contenteditable='true']");
+        if (event.key === "/" && !isTyping && !dialog.open) {
+          event.preventDefault();
+          search.focus();
+        }
+      });
+
+      let savedTheme = "";
+      let savedCanvas = "";
+      let savedDensity = "";
+      let savedPalette = "";
+      try {
+        savedTheme = localStorage.getItem("wada-theme") || "";
+        savedCanvas = localStorage.getItem("wada-canvas") || "";
+        savedDensity = localStorage.getItem("wada-density") || "";
+        savedPalette = localStorage.getItem("wada-palette") || "";
+      } catch {}
+
+      const storedTheme =
+        savedTheme || (savedCanvas === "paper" ? "light" : savedCanvas === "night" ? "dark" : "");
+      if (storedTheme === "light" || storedTheme === "dark") followsSystemTheme = false;
+      applyTheme(storedTheme || (systemTheme.matches ? "light" : "dark"));
+      applyPaletteTheme(savedPalette);
+
+      if (["compact", "detail"].includes(savedDensity)) {
+        document.body.dataset.density = savedDensity;
+        setPressed(densityButtons, savedDensity, "densityOption");
+      }
+
+      const hashMatch = location.hash.match(/^#combination-(\d+)$/);
+      if (hashMatch) {
+        const card = grid.querySelector(`[data-id="${Number(hashMatch[1])}"] .palette-card`);
+        if (card) openPalette(card, false);
+      }
+
+      updateGallery();
+    </script>
+  </body>
+</html>
