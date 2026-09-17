@@ -159,6 +159,31 @@ test("release palettes expose three dark identities and one shared light theme",
   );
 });
 
+test("dark release palettes keep primary editor and terminal text neutral", async () => {
+  const files = [
+    "folio-luminous-ink.json",
+    "folio-sunlit-shell.json",
+    "folio-spring-herbarium.json"
+  ];
+  const palettes = await Promise.all(
+    files.map((file) => readPalette(resolve(import.meta.dirname, "../palette", file)))
+  );
+
+  for (const palette of palettes) {
+    const channels = palette.colors.text
+      .slice(1)
+      .match(/.{2}/g)
+      .map((channel) => Number.parseInt(channel, 16));
+    const channelSpread = Math.max(...channels) - Math.min(...channels);
+
+    assert.ok(channelSpread <= 10, `${palette.name} primary text is visibly tinted`);
+    assert.ok(
+      contrastRatio(palette.colors.base, palette.colors.text) >= 7,
+      `${palette.name} primary text is below 7:1`
+    );
+  }
+});
+
 test("background studies change only the six background ladder roles", () => {
   const studies = createBackgroundStudyPalettes(completePalette);
   const backgroundRoles = ["surface2", "surface1", "surface0", "base", "mantle", "crust"];
