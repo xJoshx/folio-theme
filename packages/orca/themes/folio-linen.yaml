@@ -1,0 +1,25 @@
+name: "Folio — Linen"
+accent: "#9f3354"
+cursor: "#27312e"
+background: "#f4f4f2"
+foreground: "#27312e"
+details: lighter
+terminal_colors:
+  normal:
+    black: "#27312e"
+    red: "#b63d21"
+    green: "#2f704d"
+    yellow: "#8a4b32"
+    blue: "#2f704d"
+    magenta: "#b63d21"
+    cyan: "#5d6912"
+    white: "#5a6265"
+  bright:
+    black: "#babdbe"
+    red: "#9a4f35"
+    green: "#2f704d"
+    yellow: "#8a572d"
+    blue: "#34685c"
+    magenta: "#9f3354"
+    cyan: "#2b6b60"
+    white: "#41484a"

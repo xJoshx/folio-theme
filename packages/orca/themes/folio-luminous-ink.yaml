@@ -1,0 +1,25 @@
+name: "Folio — Luminous Ink"
+accent: "#f37f94"
+cursor: "#d8d6cf"
+background: "#111214"
+foreground: "#d8d6cf"
+details: darker
+terminal_colors:
+  normal:
+    black: "#292c2f"
+    red: "#eb5324"
+    green: "#96d1aa"
+    yellow: "#96d1aa"
+    blue: "#96d1aa"
+    magenta: "#eb5324"
+    cyan: "#c7d14f"
+    white: "#9fa5a1"
+  bright:
+    black: "#373b3e"
+    red: "#eeb480"
+    green: "#96d1aa"
+    yellow: "#eeb480"
+    blue: "#b4cdc2"
+    magenta: "#f37f94"
+    cyan: "#b5decc"
+    white: "#b6bfc1"

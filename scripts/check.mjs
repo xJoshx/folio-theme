@@ -55,7 +55,12 @@ for (const matrixPalette of matrixPalettes) {
 for (const path of [
   "extension.toml",
   "schemas/palette.schema.json",
+  "src/targets/claude-code.mjs",
+  "src/targets/orca.mjs",
   "src/targets/zed.mjs",
+  "packages/claude-code/.claude-plugin/plugin.json",
+  "packages/claude-code/README.md",
+  "packages/orca/README.md",
   "docs/PLAN.md"
 ]) {
   try {

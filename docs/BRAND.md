@@ -25,9 +25,9 @@ wordmark under the same constraints.
 
 The identity has to accommodate three dark personalities and a shared light surface:
 
-- **Luminous Ink / Graphite** — editorial.
-- **Sunlit Shell / Mineral Slate** — bright and mineral.
-- **Spring Herbarium / Tyrian Night** — creative and botanical.
+- **Luminous Ink / Graphite** — the neutral editorial workhorse: soft-white code, clear cobalt-green strings, and a quiet canvas for long sessions.
+- **Sunlit Shell / Mineral Slate** — warm and energetic, with deeper peach strings and sharper coral punctuation.
+- **Spring Herbarium / Tyrian Night** — the creative night theme: botanical accents on a deep blue-black canvas.
 - **Linen** — quiet, neutral, and light.
 
 The family should feel crafted and colour-conscious without becoming nostalgic

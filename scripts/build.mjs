@@ -3,6 +3,15 @@ import { resolve } from "node:path";
 import { assertPaletteReady, readPalette } from "./lib/palette.mjs";
 import { createZedThemeFamily } from "../src/targets/zed.mjs";
 import {
+  createOrcaTerminalTheme,
+  orcaThemeFilename,
+  serializeOrcaTerminalTheme
+} from "../src/targets/orca.mjs";
+import {
+  claudeCodeThemeFilename,
+  createClaudeCodeTheme
+} from "../src/targets/claude-code.mjs";
+import {
   createBackgroundMatrixPalettes,
   createBackgroundStudyPalettes
 } from "../src/lib/background-studies.prototype.mjs";
@@ -16,6 +25,14 @@ const paletteFiles = [
 ];
 const palettes = await Promise.all(
   paletteFiles.map((file) => readPalette(resolve(root, "palette", file)))
+);
+const releasePalettes = palettes.map((palette) =>
+  palette.appearance === "light"
+    ? palette
+    : {
+        ...palette,
+        settings: { ...palette.settings, readingTone: "bright", stringTone: "palette" }
+      }
 );
 const backgroundStudyBase = await readPalette(
   resolve(root, "palette", "ink-and-blossom-luminous-v2.json")
@@ -41,6 +58,8 @@ for (const palette of [
 }
 
 const outputDirectory = resolve(root, "themes");
+const orcaOutputDirectory = resolve(root, "packages", "orca", "themes");
+const claudeCodeOutputDirectory = resolve(root, "packages", "claude-code", "themes");
 const studyOutputDirectory = resolve(root, "studies", "generated");
 const outputPath = resolve(outputDirectory, "folio.json");
 const legacyOutputPath = resolve(outputDirectory, "ink-and-blossom.json");
@@ -50,7 +69,7 @@ const softStudyOutputPath = resolve(
   "ink-and-blossom-background-studies-soft.json"
 );
 const matrixOutputPath = resolve(studyOutputDirectory, "ink-and-blossom-background-matrix.json");
-const theme = createZedThemeFamily(palettes, {
+const theme = createZedThemeFamily(releasePalettes, {
   name: "Folio",
   author: "José Vizcaíno"
 });
@@ -65,18 +84,34 @@ const backgroundMatrixTheme = createZedThemeFamily(backgroundMatrixPalettes, {
 });
 
 await mkdir(outputDirectory, { recursive: true });
+await mkdir(orcaOutputDirectory, { recursive: true });
+await mkdir(claudeCodeOutputDirectory, { recursive: true });
 await mkdir(studyOutputDirectory, { recursive: true });
 // Only the release candidate belongs in Zed's themes directory. Its source
 // palettes remain intact, so the previous generated family is reproducible.
 await rm(legacyOutputPath, { force: true });
 await Promise.all([
   writeFile(outputPath, `${JSON.stringify(theme, null, 2)}\n`),
+  ...palettes.map((palette) =>
+    writeFile(
+      resolve(orcaOutputDirectory, orcaThemeFilename(palette)),
+      serializeOrcaTerminalTheme(createOrcaTerminalTheme(palette))
+    )
+  ),
+  ...palettes.map((palette) =>
+    writeFile(
+      resolve(claudeCodeOutputDirectory, claudeCodeThemeFilename(palette)),
+      `${JSON.stringify(createClaudeCodeTheme(palette), null, 2)}\n`
+    )
+  ),
   writeFile(studyOutputPath, `${JSON.stringify(backgroundStudyTheme, null, 2)}\n`),
   writeFile(softStudyOutputPath, `${JSON.stringify(softDividerStudyTheme, null, 2)}\n`),
   writeFile(matrixOutputPath, `${JSON.stringify(backgroundMatrixTheme, null, 2)}\n`)
 ]);
 
 console.log(`Generated ${outputPath}`);
+console.log(`Generated ${palettes.length} Orca terminal themes in ${orcaOutputDirectory}`);
+console.log(`Generated ${palettes.length} Claude Code themes in ${claudeCodeOutputDirectory}`);
 console.log(`Generated ${studyOutputPath}`);
 console.log(`Generated ${softStudyOutputPath}`);
 console.log(`Generated ${matrixOutputPath}`);

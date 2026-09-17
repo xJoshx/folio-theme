@@ -1,0 +1,25 @@
+name: "Folio — Spring Herbarium"
+accent: "#ca92a8"
+cursor: "#d8d6cf"
+background: "#0c131b"
+foreground: "#d8d6cf"
+details: darker
+terminal_colors:
+  normal:
+    black: "#25384a"
+    red: "#ca92a8"
+    green: "#96d1aa"
+    yellow: "#fbe6a0"
+    blue: "#96d1aa"
+    magenta: "#f37f94"
+    cyan: "#96d1aa"
+    white: "#9fa5a1"
+  bright:
+    black: "#344b60"
+    red: "#ca92a8"
+    green: "#96d1aa"
+    yellow: "#ca92a8"
+    blue: "#b4cdc2"
+    magenta: "#ca92a8"
+    cyan: "#b5decc"
+    white: "#b6bfc1"

@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "folio-themes",
+  "displayName": "Folio Themes",
+  "version": "0.0.1",
+  "description": "Four Sanzo Wada-inspired color themes for Claude Code.",
+  "author": {
+    "name": "José Vizcaíno"
+  },
+  "license": "MIT",
+  "keywords": ["theme", "color", "wada", "folio"],
+  "experimental": {
+    "themes": "./themes/"
+  }
+}

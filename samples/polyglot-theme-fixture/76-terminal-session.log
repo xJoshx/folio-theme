@@ -1,0 +1,75 @@
+$ npm run release:check
+
+> folio-theme@0.0.1 release:check
+> npm test && npm run build && npm run check
+
+TAP version 13
+ok 1 - draft palette contract accepts all roles as null
+ok 2 - production palette contract rejects null roles
+ok 3 - alpha creates Zed-compatible eight-digit hex
+ok 4 - contrast ratio matches known black and white ratio
+ok 5 - Zed adapter emits broad theme coverage
+ok 6 - Markdown structure keeps readable styles
+ok 7 - interactive elements remain visible
+ok 8 - soft separators avoid syntax colours
+ok 9 - release family contains every supported variant
+ok 10 - dark palettes use a neutral reading colour
+ok 11 - light palettes retain their warm hierarchy
+
+Tests:       11 passed, 11 total
+Time:        0.084 s
+
+Generating theme artifacts...
+Generated themes/folio.json
+Generated studies/generated/ink-and-blossom-background-studies.json
+Generated studies/generated/ink-and-blossom-background-studies-soft.json
+Generated studies/generated/ink-and-blossom-background-matrix.json
+
+Validating extension metadata...
+Extension identifier: folio-theme
+Theme family: Folio
+Dark variants: 3
+Light variants: 1
+Schema: https://zed.dev/schema/themes/v0.2.0.json
+
+Checking release palette contrast...
+Folio — Luminous Ink: reading text 12.78:1, comments 7.14:1
+Folio — Sunlit Shell: reading text 12.19:1, comments 6.72:1
+Folio — Spring Herbarium: reading text 12.65:1, comments 6.94:1
+Folio — Linen: reading text 11.26:1, comments 5.53:1
+
+Checking generated files...
+themes/folio.json is current
+No legacy theme artifacts found
+No unexpected palette roles found
+No missing syntax scopes found
+No malformed hexadecimal colours found
+
+Release check completed successfully.
+
+$ git status --short
+ M palette/folio-luminous-ink.json
+ M palette/folio-spring-herbarium.json
+ M palette/folio-sunlit-shell.json
+ M src/targets/zed.mjs
+ M themes/folio.json
+?? samples/polyglot-theme-fixture/74-long-markdown.md
+?? samples/polyglot-theme-fixture/75-string-heavy.ts
+?? samples/polyglot-theme-fixture/76-terminal-session.log
+
+$ node scripts/compare-reading-tones.mjs --theme "Folio — Luminous Ink"
+Reading tone comparison
+-----------------------
+Gray  #b6bfc1  contrast 12.78:1  character: quiet, cool, durable
+White #d8d6cf  contrast 16.08:1  character: crisp, warm, prominent
+
+Markdown body:  gray recommended for sustained reading
+Long strings:   gray recommended for visual rhythm
+Terminal text:  gray recommended for routine output
+Identifiers:    white recommended for local emphasis
+
+No preference has been saved. Select a tone in the Theme Lab and review the
+Markdown, TypeScript, and terminal fixtures side by side before publishing.
+
+$ printf "Workbench ready. Waiting for visual review.\n"
+Workbench ready. Waiting for visual review.

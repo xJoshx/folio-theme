@@ -1,3 +1,5 @@
+import { READING_TONES, resolveToneColors } from "../lib/theme-lab-tones.mjs";
+
 type ThemeColors = Record<string, string>;
 
 interface Preset {
@@ -14,9 +16,14 @@ interface Preset {
 interface StoredState {
   presetId: string;
   colors: ThemeColors;
+  mainTone?: MainTone;
+  stringTone?: StringTone;
 }
 
-const STORAGE_KEY = "wada-theme-lab-state-v7";
+type MainTone = "gray" | "white";
+type StringTone = "palette" | MainTone;
+
+const STORAGE_KEY = "wada-theme-lab-state-v10";
 const presetsNode = document.querySelector<HTMLScriptElement>("#themeLabPresets");
 const presets: Preset[] = JSON.parse(presetsNode?.textContent ?? "[]");
 const roles = Object.keys(presets[0]?.colors ?? {});
@@ -28,6 +35,7 @@ const referenceEditor = document.querySelector<HTMLElement>("[data-editor-refere
 const changedCount = document.querySelector<HTMLElement>("[data-changed-count]");
 const toast = document.querySelector<HTMLElement>("[data-toast]");
 const offlineStatus = document.querySelector<HTMLElement>("[data-offline-status]");
+const toneControls = document.querySelector<HTMLElement>(".tone-controls");
 
 let activePreset =
   presets.find((preset) => preset.status === "pinned") ??
@@ -37,6 +45,8 @@ let activePreset =
   presets.find((preset) => preset.status !== "discarded") ??
   presets[0];
 let colors: ThemeColors = { ...activePreset.colors };
+let mainTone: MainTone = "white";
+let stringTone: StringTone = "palette";
 let toastTimer = 0;
 
 const kebab = (value: string) => value.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
@@ -77,6 +87,17 @@ const applyVariables = (target: HTMLElement, values: ThemeColors) => {
   for (const [role, value] of Object.entries(values)) {
     target.style.setProperty(`--theme-${kebab(role)}`, value);
   }
+};
+
+const applyToneChoices = () => {
+  colors = resolveToneColors({ preset: activePreset, colors, mainTone, stringTone });
+};
+
+const updateToneUrl = () => {
+  const url = new URL(window.location.href);
+  url.searchParams.set("main", mainTone);
+  url.searchParams.set("strings", stringTone);
+  window.history.replaceState({}, "", url);
 };
 
 const createZedTheme = () => {
@@ -151,13 +172,13 @@ const createZedTheme = () => {
           "variable.parameter": { color: colors.foreground },
           "variable.special": { color: colors.constant },
           constant: { color: colors.constant, font_style: "italic" },
-          type: { color: colors.foreground },
-          "type.builtin": { color: colors.foreground },
-          function: { color: colors.foreground },
-          "function.call": { color: colors.foreground },
-          "function.method": { color: colors.foreground },
-          module: { color: colors.foreground },
-          namespace: { color: colors.foreground },
+          type: { color: colors.constant },
+          "type.builtin": { color: colors.constant },
+          function: { color: colors.added },
+          "function.call": { color: colors.added },
+          "function.method": { color: colors.added },
+          module: { color: colors.added },
+          namespace: { color: colors.added },
           keyword: { color: colors.keyword, font_style: "italic" },
           "keyword.import": { color: colors.keyword, font_style: "italic" },
           "keyword.modifier": { color: colors.keyword, font_style: "italic" },
@@ -179,7 +200,7 @@ const createZedTheme = () => {
 };
 
 const persist = () => {
-  const state: StoredState = { presetId: activePreset.id, colors };
+  const state: StoredState = { presetId: activePreset.id, colors, mainTone, stringTone };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 };
 
@@ -230,9 +251,16 @@ const render = ({ save = true } = {}) => {
   if (currentName) currentName.textContent = activePreset.name;
   if (currentDescription) currentDescription.textContent = activePreset.description;
   if (referenceName) referenceName.textContent = activePreset.name;
+  if (toneControls) toneControls.hidden = activePreset.appearance === "light";
 
   document.querySelectorAll<HTMLElement>("[data-preset]").forEach((button) => {
     button.setAttribute("aria-pressed", String(button.dataset.preset === activePreset.id));
+  });
+  document.querySelectorAll<HTMLElement>("[data-main-tone]").forEach((button) => {
+    button.setAttribute("aria-pressed", String(button.dataset.mainTone === mainTone));
+  });
+  document.querySelectorAll<HTMLElement>("[data-string-tone]").forEach((button) => {
+    button.setAttribute("aria-pressed", String(button.dataset.stringTone === stringTone));
   });
 
   updateControls();
@@ -244,11 +272,34 @@ const selectPreset = (id: string) => {
   if (!preset) return;
   activePreset = preset;
   colors = { ...preset.colors };
+  applyToneChoices();
   render();
 };
 
 for (const button of document.querySelectorAll<HTMLElement>("[data-preset]")) {
   button.addEventListener("click", () => selectPreset(button.dataset.preset ?? ""));
+}
+
+for (const button of document.querySelectorAll<HTMLElement>("[data-main-tone]")) {
+  button.addEventListener("click", () => {
+    const tone = button.dataset.mainTone as MainTone;
+    if (!(tone in READING_TONES)) return;
+    mainTone = tone;
+    applyToneChoices();
+    updateToneUrl();
+    render();
+  });
+}
+
+for (const button of document.querySelectorAll<HTMLElement>("[data-string-tone]")) {
+  button.addEventListener("click", () => {
+    const tone = button.dataset.stringTone as StringTone;
+    if (tone !== "palette" && !(tone in READING_TONES)) return;
+    stringTone = tone;
+    applyToneChoices();
+    updateToneUrl();
+    render();
+  });
 }
 
 for (const input of document.querySelectorAll<HTMLInputElement>("[data-color-input]")) {
@@ -281,6 +332,7 @@ for (const input of document.querySelectorAll<HTMLInputElement>("[data-hex-input
 
 document.querySelector<HTMLElement>("[data-reset]")?.addEventListener("click", () => {
   colors = { ...activePreset.colors };
+  applyToneChoices();
   render();
   showToast("Preset restored");
 });
@@ -353,10 +405,32 @@ try {
   if (storedPreset && stored && hasEveryRole) {
     activePreset = storedPreset;
     colors = { ...stored.colors };
+    if (stored.mainTone && stored.mainTone in READING_TONES) mainTone = stored.mainTone;
+    if (
+      stored.stringTone === "palette" ||
+      (stored.stringTone && stored.stringTone in READING_TONES)
+    ) stringTone = stored.stringTone;
+    applyToneChoices();
   }
 } catch {
   localStorage.removeItem(STORAGE_KEY);
 }
+
+const requestedToneUrl = new URL(window.location.href);
+const requestedMainTone = requestedToneUrl.searchParams.get("main");
+const requestedStringTone = requestedToneUrl.searchParams.get("strings");
+if (requestedMainTone === "gray" || requestedMainTone === "white") {
+  mainTone = requestedMainTone;
+}
+if (
+  requestedStringTone === "palette" ||
+  requestedStringTone === "gray" ||
+  requestedStringTone === "white"
+) {
+  stringTone = requestedStringTone;
+}
+
+applyToneChoices();
 
 render({ save: false });
 

@@ -1,7 +1,17 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import test from "node:test";
 import { createZedTheme, createZedThemeFamily } from "../src/targets/zed.mjs";
+import {
+  createOrcaTerminalTheme,
+  orcaThemeFilename,
+  serializeOrcaTerminalTheme
+} from "../src/targets/orca.mjs";
+import {
+  claudeCodeThemeFilename,
+  createClaudeCodeTheme
+} from "../src/targets/claude-code.mjs";
 import {
   backgroundStudies,
   backgroundStudyFinalistIds,
@@ -16,6 +26,7 @@ import {
   validatePalette
 } from "../scripts/lib/palette.mjs";
 import { presets } from "../src/lib/theme-lab-presets.mjs";
+import { resolveToneColors } from "../src/lib/theme-lab-tones.mjs";
 
 const fakeColors = Object.fromEntries(
   ROLE_NAMES.map((role, index) => [role, `#${(index + 0x202020).toString(16).padStart(6, "0")}`])
@@ -62,8 +73,18 @@ test("Zed adapter emits broad Catppuccin-style coverage", () => {
   assert.equal(style["editor.background"], fakeColors.base);
   assert.equal(style.text, fakeColors.subtext1);
   assert.equal(style["text.muted"], fakeColors.subtext0);
-  assert.equal(style["editor.foreground"], fakeColors.text);
+  assert.equal(style["editor.foreground"], fakeColors.subtext1);
+  assert.equal(style["terminal.foreground"], fakeColors.subtext1);
+  assert.equal(style["terminal.bright_foreground"], fakeColors.subtext1);
+  assert.equal(style.syntax.text.color, fakeColors.subtext1);
+  assert.equal(style.syntax.string.color, fakeColors.yellow);
+  assert.equal(style.syntax.variable.color, fakeColors.text);
   assert.equal(style.syntax.keyword.font_style, "italic");
+  assert.equal(style["text.placeholder"], fakeColors.subtext0);
+  assert.equal(style.modified, fakeColors.subtext1);
+  assert.equal(style["modified.border"], fakeColors.subtext0);
+  assert.equal(style["modified.background"], alpha(fakeColors.subtext0, 0.15));
+  assert.equal(style["version_control.modified"], fakeColors.yellow);
 });
 
 test("Zed adapter gives Markdown structure its own readable styles", () => {
@@ -159,6 +180,191 @@ test("release palettes expose three dark identities and one shared light theme",
   );
 });
 
+test("generated Folio package contains only the four correctly named release themes", async () => {
+  const builtTheme = JSON.parse(
+    await readFile(resolve(import.meta.dirname, "../themes/folio.json"), "utf8")
+  );
+
+  assert.deepEqual(
+    builtTheme.themes.map((theme) => theme.name),
+    [
+      "Folio — Luminous Ink",
+      "Folio — Sunlit Shell",
+      "Folio — Spring Herbarium",
+      "Folio — Linen"
+    ]
+  );
+});
+
+test("Orca adapter emits the supported Warp terminal-theme contract", () => {
+  const theme = createOrcaTerminalTheme(completePalette);
+
+  assert.equal(theme.name, "Fixture");
+  assert.equal(theme.background, fakeColors.base);
+  assert.equal(theme.foreground, fakeColors.text);
+  assert.equal(theme.accent, fakeColors.mauve);
+  assert.equal(theme.cursor, fakeColors.text);
+  assert.equal(theme.details, "darker");
+  assert.equal(theme.terminal_colors.normal.red, fakeColors.red);
+  assert.equal(theme.terminal_colors.normal.white, fakeColors.subtext0);
+  assert.equal(theme.terminal_colors.bright.black, fakeColors.surface2);
+  assert.equal(theme.terminal_colors.bright.white, fakeColors.subtext1);
+
+  const yaml = serializeOrcaTerminalTheme(theme);
+  assert.match(yaml, /^name: "Fixture"/);
+  assert.match(yaml, /terminal_colors:\n  normal:/);
+  assert.match(yaml, /  bright:/);
+});
+
+test("Orca adapter keeps ANSI black and white ordered correctly on light themes", () => {
+  const theme = createOrcaTerminalTheme({ ...completePalette, appearance: "light" });
+
+  assert.equal(theme.details, "lighter");
+  assert.equal(theme.terminal_colors.normal.black, fakeColors.text);
+  assert.equal(theme.terminal_colors.bright.black, fakeColors.surface2);
+  assert.equal(theme.terminal_colors.normal.white, fakeColors.subtext0);
+  assert.equal(theme.terminal_colors.bright.white, fakeColors.subtext1);
+});
+
+test("Orca adapter lets Herbarium replace ANSI orange and coral with its keyword pink", async () => {
+  const herbarium = await readPalette(
+    resolve(import.meta.dirname, "../palette/folio-spring-herbarium.json")
+  );
+  const theme = createOrcaTerminalTheme(herbarium);
+
+  assert.equal(herbarium.settings.terminalWarmRole, "mauve");
+  assert.equal(theme.terminal_colors.normal.red, herbarium.colors.mauve);
+  assert.equal(theme.terminal_colors.bright.red, herbarium.colors.mauve);
+  assert.equal(theme.terminal_colors.bright.yellow, herbarium.colors.mauve);
+});
+
+test("Orca package contains one importable terminal theme per release palette", async () => {
+  const files = [
+    "folio-luminous-ink.json",
+    "folio-sunlit-shell.json",
+    "folio-spring-herbarium.json",
+    "folio-linen.json"
+  ];
+  const palettes = await Promise.all(
+    files.map((file) => readPalette(resolve(import.meta.dirname, "../palette", file)))
+  );
+
+  assert.deepEqual(
+    palettes.map(orcaThemeFilename),
+    [
+      "folio-luminous-ink.yaml",
+      "folio-sunlit-shell.yaml",
+      "folio-spring-herbarium.yaml",
+      "folio-linen.yaml"
+    ]
+  );
+
+  for (const palette of palettes) {
+    const path = resolve(
+      import.meta.dirname,
+      "../packages/orca/themes",
+      orcaThemeFilename(palette)
+    );
+    const yaml = await readFile(path, "utf8");
+    assert.equal(yaml, serializeOrcaTerminalTheme(createOrcaTerminalTheme(palette)));
+  }
+});
+
+test("Claude Code adapter covers its documented theme surfaces", () => {
+  const theme = createClaudeCodeTheme(completePalette);
+
+  assert.equal(theme.name, "Fixture");
+  assert.equal(theme.base, "dark");
+  assert.equal(theme.overrides.text, fakeColors.text);
+  assert.equal(theme.overrides.claude, fakeColors.yellow);
+  assert.equal(theme.overrides.promptBorder, fakeColors.yellow);
+  assert.equal(theme.overrides.success, fakeColors.green);
+  assert.equal(theme.overrides.error, fakeColors.red);
+  assert.equal(theme.overrides.userMessageBackground, fakeColors.surface0);
+  assert.equal(theme.overrides.bashMessageBackgroundColor, fakeColors.mantle);
+  assert.equal(theme.overrides.purple_FOR_SUBAGENTS_ONLY, fakeColors.mauve);
+  assert.match(theme.overrides.diffAdded, /^#[0-9a-f]{6}$/);
+  assert.match(theme.overrides.diffRemoved, /^#[0-9a-f]{6}$/);
+  assert.ok(Object.keys(theme.overrides).length >= 55);
+});
+
+test("Claude Code Herbarium carries the terminal pink-forward warm role", async () => {
+  const herbarium = await readPalette(
+    resolve(import.meta.dirname, "../palette/folio-spring-herbarium.json")
+  );
+  const theme = createClaudeCodeTheme(herbarium);
+
+  assert.equal(theme.overrides.claude, herbarium.colors.mauve);
+  assert.equal(theme.overrides.promptBorder, herbarium.colors.mauve);
+  assert.equal(theme.overrides.error, herbarium.colors.mauve);
+  assert.equal(theme.overrides.orange_FOR_SUBAGENTS_ONLY, herbarium.colors.mauve);
+  assert.equal(theme.overrides.rainbow_orange, herbarium.colors.mauve);
+});
+
+test("Claude Code package contains one generated theme per release palette", async () => {
+  const files = [
+    "folio-luminous-ink.json",
+    "folio-sunlit-shell.json",
+    "folio-spring-herbarium.json",
+    "folio-linen.json"
+  ];
+  const palettes = await Promise.all(
+    files.map((file) => readPalette(resolve(import.meta.dirname, "../palette", file)))
+  );
+
+  assert.deepEqual(
+    palettes.map(claudeCodeThemeFilename),
+    [
+      "folio-luminous-ink.json",
+      "folio-sunlit-shell.json",
+      "folio-spring-herbarium.json",
+      "folio-linen.json"
+    ]
+  );
+
+  for (const palette of palettes) {
+    const path = resolve(
+      import.meta.dirname,
+      "../packages/claude-code/themes",
+      claudeCodeThemeFilename(palette)
+    );
+    const theme = JSON.parse(await readFile(path, "utf8"));
+    assert.deepEqual(theme, createClaudeCodeTheme(palette));
+  }
+});
+
+test("Claude Code themes keep long-form and surfaced text readable", async () => {
+  const files = [
+    "folio-luminous-ink.json",
+    "folio-sunlit-shell.json",
+    "folio-spring-herbarium.json",
+    "folio-linen.json"
+  ];
+  const palettes = await Promise.all(
+    files.map((file) => readPalette(resolve(import.meta.dirname, "../palette", file)))
+  );
+
+  for (const palette of palettes) {
+    const { overrides } = createClaudeCodeTheme(palette);
+    for (const background of [
+      palette.colors.base,
+      overrides.userMessageBackground,
+      overrides.bashMessageBackgroundColor,
+      overrides.diffAdded,
+      overrides.diffRemoved
+    ]) {
+      assert.ok(
+        contrastRatio(overrides.text, background) >= 7,
+        `${palette.name} text is below 7:1 on ${background}`
+      );
+    }
+    assert.ok(
+      contrastRatio(overrides.inverseText, overrides.claude) >= 4.5,
+      `${palette.name} inverse text is unreadable on its primary accent`
+    );
+  }
+});
+
 test("dark release palettes keep primary editor and terminal text neutral", async () => {
   const files = [
     "folio-luminous-ink.json",
@@ -170,18 +376,68 @@ test("dark release palettes keep primary editor and terminal text neutral", asyn
   );
 
   for (const palette of palettes) {
-    const channels = palette.colors.text
+    const channels = palette.colors.subtext1
       .slice(1)
       .match(/.{2}/g)
       .map((channel) => Number.parseInt(channel, 16));
     const channelSpread = Math.max(...channels) - Math.min(...channels);
 
-    assert.ok(channelSpread <= 10, `${palette.name} primary text is visibly tinted`);
+    assert.equal(palette.colors.subtext1, "#b6bfc1", `${palette.name} does not use Wada Neutral Gray`);
+    assert.ok(channelSpread <= 12, `${palette.name} primary text is visibly tinted`);
     assert.ok(
-      contrastRatio(palette.colors.base, palette.colors.text) >= 7,
+      contrastRatio(palette.colors.base, palette.colors.subtext1) >= 7,
       `${palette.name} primary text is below 7:1`
     );
   }
+});
+
+test("Luminous stays quiet while Sunlit Shell owns the warm string mass", async () => {
+  const [luminous, shell, herbarium] = await Promise.all(
+    [
+      "folio-luminous-ink.json",
+      "folio-sunlit-shell.json",
+      "folio-spring-herbarium.json"
+    ].map((file) => readPalette(resolve(import.meta.dirname, "../palette", file)))
+  );
+
+  assert.equal(luminous.colors.yellow, "#96d1aa");
+  assert.equal(shell.colors.yellow, "#eeb480");
+  assert.equal(herbarium.colors.yellow, "#fbe6a0");
+  assert.ok(
+    Math.abs(
+      contrastRatio("#000000", luminous.colors.yellow) -
+      contrastRatio("#000000", shell.colors.yellow)
+    ) < 1,
+    "Luminous and Shell string accents should carry comparable visual weight"
+  );
+});
+
+test("light themes retain their warmer content hierarchy", () => {
+  const lightPalette = { ...completePalette, appearance: "light" };
+  const style = createZedTheme(lightPalette).themes[0].style;
+
+  assert.equal(style["editor.foreground"], fakeColors.text);
+  assert.equal(style["terminal.foreground"], fakeColors.text);
+  assert.equal(style.syntax.text.color, fakeColors.text);
+  assert.equal(style.syntax.string.color, fakeColors.yellow);
+});
+
+test("dark workbench themes can invert white between reading text and strings", () => {
+  const paletteStringsStyle = createZedTheme({
+    ...completePalette,
+    settings: { ...completePalette.settings, readingTone: "bright", stringTone: "palette" }
+  }).themes[0].style;
+  const whiteStringsStyle = createZedTheme({
+    ...completePalette,
+    settings: { ...completePalette.settings, readingTone: "neutral", stringTone: "white" }
+  }).themes[0].style;
+
+  assert.equal(paletteStringsStyle["terminal.foreground"], fakeColors.text);
+  assert.equal(paletteStringsStyle.syntax.text.color, fakeColors.text);
+  assert.equal(paletteStringsStyle.syntax.string.color, fakeColors.yellow);
+  assert.equal(whiteStringsStyle["terminal.foreground"], fakeColors.subtext1);
+  assert.equal(whiteStringsStyle.syntax.text.color, fakeColors.subtext1);
+  assert.equal(whiteStringsStyle.syntax.string.color, fakeColors.text);
 });
 
 test("background studies change only the six background ladder roles", () => {
@@ -274,6 +530,16 @@ test("Theme Lab pins the three final dark themes and archives every background s
     "discarded"
   );
   assert.equal(presets.some((preset) => preset.status === "kept"), false);
+});
+
+test("Theme Lab tone experiments never replace light-preset reading colors", () => {
+  const lightPreset = presets.find((preset) => preset.id === "ink-blossom-luminous-light-v2");
+  const colors = { ...lightPreset.colors };
+
+  assert.deepEqual(
+    resolveToneColors({ preset: lightPreset, colors, mainTone: "white", stringTone: "palette" }),
+    colors
+  );
 });
 
 test("new light counterparts keep readable syntax on their paper backgrounds", async () => {

@@ -1,0 +1,25 @@
+name: "Folio — Sunlit Shell"
+accent: "#f37f94"
+cursor: "#d8d6cf"
+background: "#101519"
+foreground: "#d8d6cf"
+details: darker
+terminal_colors:
+  normal:
+    black: "#29343b"
+    red: "#eb5324"
+    green: "#96d1aa"
+    yellow: "#eeb480"
+    blue: "#96d1aa"
+    magenta: "#eb5324"
+    cyan: "#c7d14f"
+    white: "#a2a39f"
+  bright:
+    black: "#39464e"
+    red: "#f48067"
+    green: "#96d1aa"
+    yellow: "#eeb480"
+    blue: "#b4cdc2"
+    magenta: "#f37f94"
+    cyan: "#b5decc"
+    white: "#b6bfc1"

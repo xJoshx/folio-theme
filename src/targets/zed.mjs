@@ -10,6 +10,16 @@ function createZedThemeEntry(palette) {
   const vimModeText = isLight ? c.base : c.crust;
   const chromeText = isLight ? c.text : c.subtext1;
   const chromeMuted = isLight ? c.subtext1 : c.subtext0;
+  // Long-form content and strings remain independent so each palette can keep
+  // neutral reading text while retaining its own dominant syntax accent.
+  const readingTextRole = isLight || palette.settings.readingTone === "bright" ? "text" : "subtext1";
+  const stringTextRole = isLight
+    ? "yellow"
+    : palette.settings.stringTone === "white"
+      ? "text"
+      : palette.settings.stringTone === "gray"
+        ? "subtext1"
+        : "yellow";
   const useSoftSeparators = palette.settings.separatorStyle === "soft";
   const divider = useSoftSeparators ? translucent("surface1", 0.38) : c.overlay0;
   const dividerVariant = useSoftSeparators ? translucent("surface2", 0.34) : c.surface1;
@@ -27,9 +37,10 @@ function createZedThemeEntry(palette) {
     for (const scope of scopes) syntax[scope] = syntaxStyle(role, options);
   };
 
-  // Identifiers. The assignments retain Night Owl's semantic hierarchy while
-  // consuming Catppuccin-shaped palette roles.
-  assignSyntax(["variable", "text"], "text");
+  // Identifiers use a restrained semantic hierarchy while consuming
+  // Catppuccin-shaped palette roles.
+  assignSyntax(["variable"], "text");
+  assignSyntax(["text"], readingTextRole);
   assignSyntax(["variable.builtin", "variable.special", "symbol", "predoc"], "red", {
     italic: true
   });
@@ -40,8 +51,8 @@ function createZedThemeEntry(palette) {
   assignSyntax(["module", "namespace"], "yellow", { italic: true });
   assignSyntax(["label", "concept"], "sapphire");
 
-  // Literals. Warm strings are a deliberate Night Owl-derived semantic choice.
-  assignSyntax(["string", "text.literal"], "yellow");
+  // Literals remain independently tunable from ordinary reading text.
+  assignSyntax(["string", "text.literal"], stringTextRole);
   assignSyntax(["string.documentation", "string.doc", "character"], "teal", {
     italic: true
   });
@@ -197,7 +208,7 @@ function createZedThemeEntry(palette) {
     "ghost_element.disabled": c.overlay0,
     text: chromeText,
     "text.muted": chromeMuted,
-    "text.placeholder": c.overlay1,
+    "text.placeholder": chromeMuted,
     "text.disabled": c.overlay0,
     "text.accent": c.mauve,
     icon: chromeText,
@@ -234,7 +245,7 @@ function createZedThemeEntry(palette) {
     "minimap.thumb.active_background": translucent("mauve", 0.6),
     "minimap.thumb.border": null,
 
-    "editor.foreground": c.text,
+    "editor.foreground": c[readingTextRole],
     "editor.background": c.base,
     "editor.gutter.background": c.base,
     "editor.subheader.background": c.mantle,
@@ -253,9 +264,9 @@ function createZedThemeEntry(palette) {
 
     "terminal.background": c.base,
     "terminal.ansi.background": c.base,
-    "terminal.foreground": c.text,
+    "terminal.foreground": c[readingTextRole],
     "terminal.dim_foreground": c.overlay1,
-    "terminal.bright_foreground": c.text,
+    "terminal.bright_foreground": c[readingTextRole],
     "terminal.ansi.black": isLight ? c.text : c.surface1,
     "terminal.ansi.white": c.subtext0,
     "terminal.ansi.red": c.red,
@@ -300,9 +311,9 @@ function createZedThemeEntry(palette) {
     ignored: c.overlay0,
     "ignored.border": c.overlay0,
     "ignored.background": translucent("overlay0", 0.15),
-    modified: c.yellow,
-    "modified.border": c.yellow,
-    "modified.background": translucent("yellow", 0.15),
+    modified: chromeText,
+    "modified.border": chromeMuted,
+    "modified.background": translucent("subtext0", 0.15),
     predictive: c.overlay0,
     "predictive.border": c.lavender,
     "predictive.background": c.mantle,

@@ -12,52 +12,52 @@ const defaultPreset = pinnedReleasePresets[0] ?? releasePresets[0] ?? presets[0]
 
 const codeLines = [
   [
-    ["import", "keyword"], [" { ", "plain"], ["LitElement", "plain"], [", ", "plain"],
-    ["html", "plain"], [", ", "plain"], ["css", "plain"], [" } ", "bracket"],
+    ["import", "keyword"], [" { ", "plain"], ["LitElement", "symbol"], [", ", "plain"],
+    ["html", "symbol"], [", ", "plain"], ["css", "symbol"], [" } ", "bracket"],
     ["from", "keyword"], [" \"lit\"", "string"], [";", "plain"]
   ],
   [
-    ["import", "keyword"], [" { ", "plain"], ["customElement", "plain"], [", ", "plain"],
-    ["property", "plain"], [", ", "plain"], ["state", "plain"], [" } ", "bracket"],
+    ["import", "keyword"], [" { ", "plain"], ["customElement", "symbol"], [", ", "plain"],
+    ["property", "symbol"], [", ", "plain"], ["state", "symbol"], [" } ", "bracket"],
     ["from", "keyword"], [" \"lit/decorators.js\"", "string"], [";", "plain"]
   ],
   [
-    ["import", "keyword"], [" { ", "plain"], ["DocumentStore", "plain"], [", ", "plain"],
-    ["UIStore", "plain"], [", ", "plain"], ["CanvasController", "plain"], [" } ", "bracket"],
+    ["import", "keyword"], [" { ", "plain"], ["DocumentStore", "symbol"], [", ", "plain"],
+    ["UIStore", "symbol"], [", ", "plain"], ["CanvasController", "symbol"], [" } ", "bracket"],
     ["from", "keyword"], [" \"@app-cards/core\"", "string"], [";", "plain"]
   ],
   [
-    ["import", "keyword"], [" type", "keyword"], [" { ", "plain"], ["CanvasNode", "plain"],
+    ["import", "keyword"], [" type", "keyword"], [" { ", "plain"], ["CanvasNode", "symbol"],
     [" } ", "bracket"], ["from", "keyword"], [" \"@app-cards/core\"", "string"], [";", "plain"]
   ],
   [
-    ["import", "keyword"], [" { ", "plain"], ["CanvasInteractionManager", "plain"], [", ", "plain"],
-    ["type", "keyword"], [" InteractionState", "plain"], [" } ", "bracket"], ["from", "keyword"],
+    ["import", "keyword"], [" { ", "plain"], ["CanvasInteractionManager", "symbol"], [", ", "plain"],
+    ["type", "keyword"], [" InteractionState", "symbol"], [" } ", "bracket"], ["from", "keyword"],
     [" \"./canvas-interaction-manager\"", "string"], [";", "plain"]
   ],
   [
-    ["import", "keyword"], [" { ", "plain"], ["DebugManager", "plain"], [", ", "plain"],
-    ["type", "keyword"], [" DebugState", "plain"], [" } ", "bracket"], ["from", "keyword"],
+    ["import", "keyword"], [" { ", "plain"], ["DebugManager", "symbol"], [", ", "plain"],
+    ["type", "keyword"], [" DebugState", "symbol"], [" } ", "bracket"], ["from", "keyword"],
     [" \"./debug-manager\"", "string"], [";", "plain"]
   ],
   [
-    ["import", "keyword"], [" { ", "plain"], ["getVisibleCanvasNodes", "plain"], [" } ", "bracket"],
+    ["import", "keyword"], [" { ", "plain"], ["getVisibleCanvasNodes", "symbol"], [" } ", "bracket"],
     ["from", "keyword"], [" \"./viewport-culling\"", "string"], [";", "plain"]
   ],
   [
-    ["import", "keyword"], [" { ", "plain"], ["YjsController", "plain"], [" } ", "bracket"],
+    ["import", "keyword"], [" { ", "plain"], ["YjsController", "symbol"], [" } ", "bracket"],
     ["from", "keyword"], [" \"./yjs-controller\"", "string"], [";", "plain"]
   ],
   [
-    ["import", "keyword"], [" { ", "plain"], ["PhantomCursorManager", "plain"], [", ", "plain"],
-    ["type", "keyword"], [" PhantomCursor", "plain"], [" } ", "bracket"], ["from", "keyword"],
+    ["import", "keyword"], [" { ", "plain"], ["PhantomCursorManager", "symbol"], [", ", "plain"],
+    ["type", "keyword"], [" PhantomCursor", "symbol"], [" } ", "bracket"], ["from", "keyword"],
     [" \"./phantom-cursors\"", "string"], [";", "plain"]
   ],
   [["import", "keyword"], [" \"./app-card\"", "string"], [";", "plain"]],
   [["import", "keyword"], [" \"./app-box\"", "string"], [";", "plain"]],
   [["import", "keyword"], [" \"./context-menu\"", "string"], [";", "plain"]],
   [
-    ["import", "keyword"], [" type", "keyword"], [" { ", "plain"], ["ContextMenuItem", "plain"],
+    ["import", "keyword"], [" type", "keyword"], [" { ", "plain"], ["ContextMenuItem", "symbol"],
     [" } ", "bracket"], ["from", "keyword"], [" \"./context-menu\"", "string"], [";", "plain"]
   ],
   [],
@@ -195,6 +195,34 @@ const changedLines = new Set([7, 9]);
             <p data-current-description>
               {defaultPreset.description}
             </p>
+            <div class="tone-controls">
+              <fieldset class="reading-tone" aria-label="Main text and imported symbols tone">
+                <legend>Main text and imports</legend>
+                <button type="button" data-main-tone="gray" aria-pressed="false">
+                  <i style="--tone-swatch: #b6bfc1"></i>
+                  Text + imports gray
+                </button>
+                <button type="button" data-main-tone="white" aria-pressed="true">
+                  <i style="--tone-swatch: #d8d6cf"></i>
+                  White
+                </button>
+              </fieldset>
+              <fieldset class="reading-tone" aria-label="String tone">
+                <legend>Strings</legend>
+                <button type="button" data-string-tone="palette" aria-pressed="true">
+                  <i class="palette-tone-swatch"></i>
+                  Strings palette
+                </button>
+                <button type="button" data-string-tone="gray" aria-pressed="false">
+                  <i style="--tone-swatch: #b6bfc1"></i>
+                  Gray
+                </button>
+                <button type="button" data-string-tone="white" aria-pressed="false">
+                  <i style="--tone-swatch: #d8d6cf"></i>
+                  White
+                </button>
+              </fieldset>
+            </div>
             <button class="copy-action" type="button" data-copy>
               Copy JSON
               <span aria-hidden="true">⌘C</span>

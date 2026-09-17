@@ -12,3 +12,7 @@ Laravel, and more.
 
 Most files are intentionally short. Look for generics, decorators, pattern
 matching, async code, queries, markup, interpolation, comments, and strings.
+
+Files `74`–`76` are deliberately long reading-stress fixtures: sustained
+Markdown prose, string-heavy TypeScript, and dense terminal output. Use them
+to compare foreground tones at realistic viewport scale.
