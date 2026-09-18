@@ -27,7 +27,11 @@ export function createClaudeCodeTheme(palette) {
 
   return {
     name: palette.name,
-    base: isLight ? "light" : "dark",
+    // Claude Code does not expose separate overrides for Markdown body accents
+    // such as inline code and file references. The ANSI bases make those
+    // surfaces inherit Folio's matching terminal palette instead of Claude's
+    // built-in blue while the explicit overrides below remain deterministic.
+    base: isLight ? "light-ansi" : "dark-ansi",
     overrides: {
       claude: primary,
       claudeShimmer: c.rosewater,

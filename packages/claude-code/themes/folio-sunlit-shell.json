@@ -1,6 +1,6 @@
 {
   "name": "Folio — Sunlit Shell",
-  "base": "dark",
+  "base": "dark-ansi",
   "overrides": {
     "claude": "#eeb480",
     "claudeShimmer": "#fdd4bd",

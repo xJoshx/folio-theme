@@ -1,6 +1,6 @@
 {
   "name": "Folio — Linen",
-  "base": "light",
+  "base": "light-ansi",
   "overrides": {
     "claude": "#8a4b32",
     "claudeShimmer": "#8a4b32",

@@ -274,7 +274,7 @@ test("Claude Code adapter covers its documented theme surfaces", () => {
   const theme = createClaudeCodeTheme(completePalette);
 
   assert.equal(theme.name, "Fixture");
-  assert.equal(theme.base, "dark");
+  assert.equal(theme.base, "dark-ansi");
   assert.equal(theme.overrides.text, fakeColors.text);
   assert.equal(theme.overrides.claude, fakeColors.yellow);
   assert.equal(theme.overrides.promptBorder, fakeColors.yellow);
@@ -286,6 +286,14 @@ test("Claude Code adapter covers its documented theme surfaces", () => {
   assert.match(theme.overrides.diffAdded, /^#[0-9a-f]{6}$/);
   assert.match(theme.overrides.diffRemoved, /^#[0-9a-f]{6}$/);
   assert.ok(Object.keys(theme.overrides).length >= 55);
+});
+
+test("Claude Code themes inherit ANSI prose accents from the matching terminal palette", () => {
+  const darkTheme = createClaudeCodeTheme(completePalette);
+  const lightTheme = createClaudeCodeTheme({ ...completePalette, appearance: "light" });
+
+  assert.equal(darkTheme.base, "dark-ansi");
+  assert.equal(lightTheme.base, "light-ansi");
 });
 
 test("Claude Code Herbarium carries the terminal pink-forward warm role", async () => {

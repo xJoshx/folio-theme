@@ -1,6 +1,6 @@
 {
   "name": "Folio — Spring Herbarium",
-  "base": "dark",
+  "base": "dark-ansi",
   "overrides": {
     "claude": "#ca92a8",
     "claudeShimmer": "#fdd4bd",

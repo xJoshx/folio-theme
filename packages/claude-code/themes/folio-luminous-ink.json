@@ -1,6 +1,6 @@
 {
   "name": "Folio — Luminous Ink",
-  "base": "dark",
+  "base": "dark-ansi",
   "overrides": {
     "claude": "#96d1aa",
     "claudeShimmer": "#fdd4bd",

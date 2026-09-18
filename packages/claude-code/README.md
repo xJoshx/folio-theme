@@ -34,5 +34,12 @@ statuses, diffs, message surfaces, usage meters, shimmers, and subagent colors.
 The surrounding terminal background and shell output still come from the host
 terminal theme, such as the matching Folio theme for Orca or Zed.
 
+Claude Code does not currently expose separate custom-theme tokens for Markdown
+body accents such as inline code and file references. Folio therefore inherits
+from Claude Code's ANSI-aware base themes so those accents use the matching
+terminal theme's blue slot: Folio maps normal blue to its main accent and bright
+blue to sapphire. Pair each Claude Code theme with the same Folio terminal theme
+for the intended result.
+
 Run `npm run build` at the repository root to regenerate the plugin themes from
 the shared source palettes. Do not hand-edit generated JSON.
