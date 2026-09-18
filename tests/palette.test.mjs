@@ -294,6 +294,8 @@ test("Claude Code themes inherit ANSI prose accents from the matching terminal p
 
   assert.equal(darkTheme.base, "dark-ansi");
   assert.equal(lightTheme.base, "light-ansi");
+  assert.equal(darkTheme.overrides.permission, fakeColors.sapphire);
+  assert.equal(lightTheme.overrides.permission, fakeColors.blue);
 });
 
 test("Claude Code Herbarium carries the terminal pink-forward warm role", async () => {

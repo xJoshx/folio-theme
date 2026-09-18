@@ -35,11 +35,13 @@ The surrounding terminal background and shell output still come from the host
 terminal theme, such as the matching Folio theme for Orca or Zed.
 
 Claude Code does not currently expose separate custom-theme tokens for Markdown
-body accents such as inline code and file references. Folio therefore inherits
-from Claude Code's ANSI-aware base themes so those accents use the matching
-terminal theme's blue slot: Folio maps normal blue to its main accent and bright
-blue to sapphire. Pair each Claude Code theme with the same Folio terminal theme
-for the intended result.
+body accents such as inline code and file references, and current releases bypass
+custom `permission` overrides while rendering those spans. Folio therefore sets
+`permission` to its prose accent for forward compatibility and inherits from
+Claude Code's ANSI-aware base themes for current releases. The matching terminal
+theme maps normal blue to the main accent and bright blue to sapphire. Pair each
+Claude Code theme with the same Folio terminal theme, then test with newly printed
+output: terminal scrollback already on screen keeps its original color codes.
 
 Run `npm run build` at the repository root to regenerate the plugin themes from
 the shared source palettes. Do not hand-edit generated JSON.

@@ -24,6 +24,7 @@ export function createClaudeCodeTheme(palette) {
   const warm = c[warmRole];
   const primary = c[primaryRole];
   const inverseText = isLight ? c.base : c.crust;
+  const proseAccent = isLight ? c.blue : c.sapphire;
 
   return {
     name: palette.name,
@@ -41,8 +42,8 @@ export function createClaudeCodeTheme(palette) {
       inactiveShimmer: c.subtext1,
       subtle: c.overlay1,
       suggestion: c.blue,
-      permission: c.mauve,
-      permissionShimmer: c.pink,
+      permission: proseAccent,
+      permissionShimmer: c.sky,
       remember: c.yellow,
 
       success: c.green,
